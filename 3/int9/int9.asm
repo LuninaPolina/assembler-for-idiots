@@ -1,58 +1,59 @@
 section .data
-hex:   db   "0123456789ABCDEF" 
+hex: db "0123456789ABCDEF" 
+int9_segment dw 0
+int9_offset dw 0
+esc_flag db 0
 
 section .text   
 use16
-  org  100h
+  org  100h          
 
 start: 
-	mov ax,0040h
-	mov fs,ax	;segment to access
+    mov ax,0			;save original int 9
+    mov es,ax
+    mov bx,[es:36]
+    mov [int9_offset],bx
+    mov bx,[es:38]
+    mov [int9_segment],bx
+    mov bx,int09h    		;replace original int9 
+    mov [es:36],bx
+    mov [es:38],cs
 
 loop:
-	mov bx,[fs:001Ah]	;address of buffer head
-	mov si,[fs:001Ch]	;address of buffer tail
-	cmp bx,si 			;empty buf if head = tail
-	je loop
-	cmp bx,003Ch		;overflow
-	je clear
-	sub si,2
-	mov ax,[fs:si]		;fs:si - address of last key info in buf
-	cmp ah,01           ;check esc scan
-    je end 
-     
-    push ax   
-    push ax
-    push ax
-    push ax
+    cmp byte [esc_flag],01
+    jne loop
 
-    mov dl,al           ;print symbol itself 
-    mov ah,02h      
-    int 21h 
-    call space  
+exit:
+    mov ax,0
+    mov es,ax
+    mov bx,[int9_offset]	;return original int9 
+    mov [es:36],bx
+    mov bx,[int9_segment]
+    mov [es:38],bx
+    int 20h
 
-    pop ax              ;print ascii
-    shr al,4    
-    call digit
-    pop ax
-    and al,0Fh
-    call digit
-    call space
-        
-    pop ax              ;print scancode
-    xchg ah,al    
+int09h:
+    in al,60h   		;get scan from port
+    mov [esc_flag],al
+    cmp al,81h  		;print only key press
+    jae nxt
+    call print
+
+nxt:
+    mov al,20h  		;signal of interrupt end
+    out 20h,al
+    iret
+
+ print:
+    push ax            
     shr al,4
     call digit
     pop ax
-    xchg ah,al
     and al,0Fh
     call digit
-    call space   
-
-clear:		            ;clear buf
-	mov ax,0C00h	
-	int 21h 
-    jmp loop
+    mov dl,' ' 
+    mov ah,02h      
+    int 21h 
               
 digit:
     lea bx,[hex]
@@ -61,13 +62,3 @@ digit:
     mov ah,02h     
     int 21h
     ret
-
-space:
-    mov dl,' ' 
-    mov ah,02h      
-    int 21h
-    ret
-
-end:
-    mov ah,4ch          ;exit
-    int 21h
