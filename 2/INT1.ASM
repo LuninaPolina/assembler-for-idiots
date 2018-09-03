@@ -1,83 +1,88 @@
-	.model tiny
-	.386
-	.code
-	org 100h
-_:
-	jmp start
+section .data
+hex:   db   "0123456789ABCDEF" 
+beg_mes db "Begin", 13, 10, '$'
+err_mes db "Error", 13, 10, '$'
+end_mes db "End", 13, 10, '$'
+ln db ' ',13,10,'$'
+filename db "hw.com", 0
+align 16
+psp db 0CFh, 
+	times 255 db 0
+buf times 256 db 0
+
+section .text   
+use16
+  org  100h 
 
 start:
-	lea dx,beg_mes	
+	mov dx,beg_mes	
 	mov ah,09h
 	int 21h
 
-	lea ax, int01h
-	mov di,0		
-	mov es, di		 
-	mov es:[4],ax		;put int01h at 0:4
-	push cs
-	pop ax
-	mov es:[4]+2,ax	
+	mov ax,0 	;replace original int 1		
+	mov es, ax	
+	mov bx, int01h	 
+	mov [es:4],bx	
+	mov [es:6],cs	
 
 	mov ax,3D00h		;open hw.com
-	lea dx,filename
+	mov dx,filename
 	int 21h
 	jc error
 	mov bx,ax
-	mov ah,3Fh		;read 
+	mov ah,3Fh			;read to buf
 	mov cx,255
-	lea dx,buf
+	mov dx,buf
 	int 21h
 	jc error
-	mov ah,3Eh		;close 
+	mov ah,3Eh			;close 
 	int 21h
 	jc error
 
-	lea ax,psp
-	shr ax,4 		;(adress of psp)/16	
+	mov cx,psp			;psp - program segment prefix
+	shr cx,4 			;(adress of psp)/16	
 	mov dx,cs		
-	add ax,dx				
-	mov ds,ax 		;ds = cs + psp/16 -	hw code segment	
-	
-	lea cx,retaddr		;back to main code segment 
+	add cx,dx				
+	mov ds,cx 			;hw program start adress		
 
 	pushf
-	push cs 		;save main cs			
-	push cx 		;retaddr			
-	push 0			;for int 20h (exit)	
-	mov cx,ax		;cx = hw code segment
-	pushf 
+	push cs 			;main cs	
+	mov ax,exit			
+	push ax 			;ip to return			
+	push 0				;for ret in hw
+	pushf 				 
 	pop ax			
-	or ax,100h		;set TF = 1
+	or ax,100h			;set TF = 1
 	push ax			
-	push cx			
-	push 100h 		
-	iret			;cx:100h = buff(hw)
+	push cx				;hw cs
+	push 100h 			;hw offset
+	iret				;goto cx:100h = buff
 
 int01h:
 	push bp	
 	mov bp,sp
 	add bp,2		;bp = ip	
-	pusha			;save stuff
+	pusha			
 	push ds
 	push cs 
-	pop ds 			;get correct data segment						
-	mov ax,word ptr [bp] 
+	pop ds 								
+	mov ax,word [bp] 
 	call print	
 	pop ds
 	popa			
 	pop bp		
-	iret				
+	iret			
 
-retaddr:
+exit:
 	push cs
 	pop ds
-	lea dx,end_mes
+	mov dx,end_mes
 	mov ah,09h
 	int 21h
-	int 20h
+    int 20h
 
 error:
-	lea dx,err_mes
+	mov dx,err_mes
 	mov ah,09h
 	int 21h
 	int 20h
@@ -102,31 +107,18 @@ print:
 	call digit
 	pop ax
 	pusha
-    	lea dx,ln
-    	mov ah,09h      
-    	int 21h
-    	popa
+    mov dx,ln
+    mov ah,09h      
+    int 21h
+    popa
 	ret
 
 digit:
 	pusha
-    	lea bx,hex 
-    	xlat 
-    	mov dl,al
-    	mov ah,02h     
-    	int 21h
-    	popa
-   	ret
-
-beg_mes db "Begin", 13, 10, '$'
-err_mes db "Error", 13, 10, '$'
-end_mes db "End", 13, 10, '$'
-ln db ' ',13,10,'$'
-filename db "hw.com", 0
-hex db "0123456789ABCDEF"
-align 16
-psp db 0CFh, 255 dup(0)
-buf db 256 dup(0)
-
-end _
-
+    mov bx,hex 
+    xlat 
+    mov dl,al
+    mov ah,02h     
+    int 21h
+    popa
+    ret
