@@ -1,5 +1,5 @@
 section .data
-hex:   db   "0123456789ABCDEF" 
+hex: db "0123456789ABCDEF" 
 beg_mes db "Begin", 13, 10, '$'
 err_mes db "Error", 13, 10, '$'
 end_mes db "End", 13, 10, '$'
@@ -19,9 +19,9 @@ start:
 	mov ah,09h
 	int 21h
 
-	mov ax,0 	;replace original int 1		
-	mov es, ax	
-	mov bx, int01h	 
+	mov ax,0 		;replace original int 1		
+	mov es,ax	
+	mov bx,int01h	 
 	mov [es:4],bx	
 	mov [es:6],cs	
 
@@ -30,33 +30,33 @@ start:
 	int 21h
 	jc error
 	mov bx,ax
-	mov ah,3Fh			;read to buf
+	mov ah,3Fh		;read to buf
 	mov cx,255
 	mov dx,buf
 	int 21h
 	jc error
-	mov ah,3Eh			;close 
+	mov ah,3Eh		;close 
 	int 21h
 	jc error
 
-	mov cx,psp			;psp - program segment prefix
-	shr cx,4 			;(adress of psp)/16	
+	mov cx,psp		;psp - program segment prefix
+	shr cx,4		;(adress of psp)/16	
 	mov dx,cs		
 	add cx,dx				
-	mov ds,cx 			;hw program start adress		
+	mov ds,cx 		;hw program start adress		
 
 	pushf
-	push cs 			;main cs	
+	push cs 		;main cs	
 	mov ax,exit			
-	push ax 			;ip to return			
-	push 0				;for ret in hw
+	push ax 		;ip to return			
+	push 0			;for ret in hw
 	pushf 				 
 	pop ax			
-	or ax,100h			;set TF = 1
-	push ax			
-	push cx				;hw cs
-	push 100h 			;hw offset
-	iret				;goto cx:100h = buff
+	or ax,100h		;set TF = 1
+	push ax		
+	push cx			;hw cs
+	push 100h 		;hw offset
+	iret			;goto cx:100h = buff
 
 int01h:
 	push bp	
@@ -79,7 +79,7 @@ exit:
 	mov dx,end_mes
 	mov ah,09h
 	int 21h
-    int 20h
+	int 20h
 
 error:
 	mov dx,err_mes
@@ -89,9 +89,9 @@ error:
 
 print: 	
 	push ax
-	shr	ax,12
+	shr ax,12
 	call digit 
-	pop	ax
+	pop ax
 	push ax
 	shr ax,8
 	and ax,0Fh
@@ -107,18 +107,18 @@ print:
 	call digit
 	pop ax
 	pusha
-    mov dx,ln
-    mov ah,09h      
-    int 21h
-    popa
+    	mov dx,ln
+    	mov ah,09h      
+    	int 21h
+    	popa
 	ret
 
 digit:
 	pusha
-    mov bx,hex 
-    xlat 
-    mov dl,al
-    mov ah,02h     
-    int 21h
-    popa
-    ret
+        mov bx,hex 
+    	xlat 
+    	mov dl,al
+    	mov ah,02h     
+    	int 21h
+    	popa
+    	ret

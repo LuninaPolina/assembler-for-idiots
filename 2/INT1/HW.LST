@@ -1,4 +1,4 @@
-Turbo Assembler	 Version 3.1	    29/08/18 08:51:41	    Page 1
+Turbo Assembler	 Version 3.1	    03/09/18 09:53:35	    Page 1
 hw.asm
 
 
@@ -16,7 +16,7 @@ hw.asm
      11	    0108  48 65	6C 6C 6F 0D 0A+	 msg db	"Hello",13,10,'$'
      12		  24
      13					 end start
-Turbo Assembler	 Version 3.1	    29/08/18 08:51:41	    Page 2
+Turbo Assembler	 Version 3.1	    03/09/18 09:53:35	    Page 2
 Symbol Table
 
 
@@ -24,9 +24,9 @@ Symbol Table
 
 Symbol Name			  Type	 Value
 
-??DATE				  Text	 "29/08/18"
+??DATE				  Text	 "03/09/18"
 ??FILENAME			  Text	 "hw	  "
-??TIME				  Text	 "08:51:41"
+??TIME				  Text	 "09:53:35"
 ??VERSION			  Number 030A
 @32BIT				  Text	 0
 @CODE				  Text	 DGROUP
