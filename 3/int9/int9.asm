@@ -53,7 +53,8 @@ nxt:
     call digit
     mov dl,' ' 
     mov ah,02h      
-    int 21h 
+    int 21h
+    ret 
               
 digit:
     lea bx,[hex]
