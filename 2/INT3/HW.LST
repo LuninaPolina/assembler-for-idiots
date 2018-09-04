@@ -1,0 +1,51 @@
+Turbo Assembler	 Version 3.1	    03/09/18 09:53:35	    Page 1
+hw.asm
+
+
+
+      1	    0000				 .model	tiny
+      2						 .386
+      3	    0000				 .code
+      4						 org 100h
+      5
+      6	    0100			 start:
+      7	    0100  BA 0108r			 lea dx,msg
+      8	    0103  B4 09				 mov ah,09h
+      9	    0105  CD 21				 int 21h
+     10	    0107  C3				 ret
+     11	    0108  48 65	6C 6C 6F 0D 0A+	 msg db	"Hello",13,10,'$'
+     12		  24
+     13					 end start
+Turbo Assembler	 Version 3.1	    03/09/18 09:53:35	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/09/18"
+??FILENAME			  Text	 "hw	  "
+??TIME				  Text	 "09:53:35"
+??VERSION			  Number 030A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0F0FH
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 HW
+@INTERFACE			  Text	 00H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+MSG				  Byte	 DGROUP:0108
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0110 Word	  Public  CODE
+

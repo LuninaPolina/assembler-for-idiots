@@ -1,4 +1,6 @@
 section .data
+breakpoint equ 03h
+original_byte db 0
 hex: db "0123456789ABCDEF" 
 beg_mes db "Begin", 13, 10, '$'
 err_mes db "Error", 13, 10, '$'
@@ -19,11 +21,11 @@ start:
 	mov ah,09h
 	int 21h
 
-	mov ax,0 		;replace original int 1		
+	mov ax,0 		;replace original int 3		
 	mov es,ax	
-	mov bx,int01h	 
-	mov [es:4],bx	
-	mov [es:6],cs	
+	mov bx,int03h	 
+	mov [es:12],bx	
+	mov [es:14],cs
 
 	mov ax,3D00h		;open hw.com
 	mov dx,filename
@@ -37,7 +39,11 @@ start:
 	jc error
 	mov ah,3Eh		;close 
 	int 21h
-	jc error
+	jc error	
+				;replace with int 3 opcode
+	mov al,[cs:buf+breakpoint] 
+	mov [original_byte],al	;save old byte
+	mov byte [cs:buf+breakpoint],0CCh 
 
 	mov cx,psp		;psp - program segment prefix
 	shr cx,4		;(adress of psp)/16	
@@ -50,30 +56,32 @@ start:
 	mov ax,exit			
 	push ax 		;ip to return			
 	push 0			;for ret in hw
-	pushf 				 
-	pop ax			
-	or ax,100h		;set TF = 1
-	push ax		
+	pushf 				 		
 	push cx			;hw cs
 	push 100h 		;hw offset
 	iret			;goto cx:100h = buff
 
-int01h:
+int03h:
 	push bp	
 	mov bp,sp
-	add bp,2		;bp = ip	
+	add bp,2		;[bp] = ip of next
+	sub word [bp],1 	;ip of current instruction	
 	pusha			
 	push ds
 	push cs 
-	pop ds 								
+	pop ds 	
 	mov ax,word [bp+2] 	;cs
-	shl eax,16
-	mov ax,word [bp] 	;ip 
-	call print	
+	shl eax,16							
+	mov ax,word [bp] 	;ip
+	call print
+	mov es,[bp+2] 		;restore original instruction
+	mov di,[bp]
+	mov al,[original_byte]
+	mov [es:di],al
 	pop ds
 	popa			
 	pop bp		
-	iret			
+	iret
 
 exit:
 	push cs
@@ -89,29 +97,29 @@ error:
 	int 21h
 	int 20h
 
-print: 	
+print:                 
 	push eax
 	shr eax,16
-	call number 
+	call number      
 	pusha
 	mov dl,':'
-	mov ah,02h
+	mov ah,02h      
 	int 21h
 	popa
 	pop eax
 	and eax,0FFFFh
-	call number
+	call number   
 	pusha
-	mov dx,ln
-	mov ah,09h
+    	mov dx,ln
+	mov ah,09h      
 	int 21h
 	popa
 	ret
 
-number:
+number: 	
 	push ax
 	shr ax,12
-	call digit
+	call digit 
 	pop ax
 	push ax
 	shr ax,8
